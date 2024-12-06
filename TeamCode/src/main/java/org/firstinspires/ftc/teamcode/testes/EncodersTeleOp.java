@@ -17,9 +17,9 @@ public class EncodersTeleOp extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        int aPosition = - 48;
+        int aPosition = - 1000;
 
-        int bPosition = 0;
+        int bPosition = 1000;
 
         DcMotor FL = hardwareMap.dcMotor.get("FL");
         DcMotor BL = hardwareMap.dcMotor.get("BL");
@@ -63,6 +63,7 @@ public class EncodersTeleOp extends LinearOpMode {
                 smoother(BL,0.15);
                 smoother(FR,0.15);
                 smoother(BR,0.15);
+
             }
 
             if (gamepad1.cross) {

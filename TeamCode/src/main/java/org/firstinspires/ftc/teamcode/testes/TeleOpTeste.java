@@ -26,10 +26,10 @@ public class TeleOpTeste extends LinearOpMode {
         backLeft  = hardwareMap.get(DcMotor.class, "BL");
         backRight = hardwareMap.get(DcMotor.class, "BR");
 
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
-        backLeft.setDirection(DcMotor.Direction.FORWARD);
+        frontLeft.setDirection(DcMotor.Direction.FORWARD);
+        backLeft.setDirection(DcMotor.Direction.REVERSE);
         backRight.setDirection(DcMotor.Direction.FORWARD);
-        frontRight.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.FORWARD);
 
         waitForStart();
 
@@ -55,10 +55,10 @@ public class TeleOpTeste extends LinearOpMode {
             float powerBL2 = - gamepad1.left_stick_x;
 
             // Aqui o código está definindo a velocidade que cada motor utilizara em seus movimentos
-            frontLeft.setPower(powerFL*0.45 + powerFL1*0.85 + powerFL2*0.4 );
-            backLeft.setPower(powerBL*0.45 + powerBL1*0.85 + powerBL2*0.4);
-            frontRight.setPower(powerFR*0.4 + powerFR1*0.8 + powerFR2*0.4);
-            backRight.setPower(powerBR*0.4 + powerBR1*0.8 + powerBR2*0.4);
+            frontLeft.setPower(powerFL*0.4 + powerFL1*0.8 + powerFL2*0.4 );
+            backLeft.setPower(powerBL*0.4 + powerBL1*0.8 + powerBL2*0.4);
+            frontRight.setPower(powerFR*0.45 + powerFR1*0.85 + powerFR2*0.4);
+            backRight.setPower(powerBR*0.45 + powerBR1*0.85 + powerBR2*0.4);
 
         }
     }
