@@ -13,23 +13,23 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 // Definição dos motores
 public class TeleOpTeste extends LinearOpMode {
 
-    private DcMotor frontLeft = null;
-    private DcMotor frontRight = null;
-    private DcMotor backLeft = null;
-    private DcMotor backRight = null;
+    private DcMotor FL = null;
+    private DcMotor FR = null;
+    private DcMotor BL = null;
+    private DcMotor BR = null;
 
     // Definição de classes dos motores
     @Override
     public void runOpMode() {
-        frontLeft  = hardwareMap.get(DcMotor.class, "FL");
-        frontRight = hardwareMap.get(DcMotor.class, "FR");
-        backLeft  = hardwareMap.get(DcMotor.class, "BL");
-        backRight = hardwareMap.get(DcMotor.class, "BR");
+        FL  = hardwareMap.get(DcMotor.class, "FL");
+        FR = hardwareMap.get(DcMotor.class, "FR");
+        BL  = hardwareMap.get(DcMotor.class, "BL");
+        BR = hardwareMap.get(DcMotor.class, "BR");
 
-        frontLeft.setDirection(DcMotor.Direction.FORWARD);
-        backLeft.setDirection(DcMotor.Direction.REVERSE);
-        backRight.setDirection(DcMotor.Direction.FORWARD);
-        frontRight.setDirection(DcMotor.Direction.FORWARD);
+        FL.setDirection(DcMotor.Direction.FORWARD);
+        BL.setDirection(DcMotor.Direction.REVERSE);
+        BR.setDirection(DcMotor.Direction.FORWARD);
+        FR.setDirection(DcMotor.Direction.FORWARD);
 
         waitForStart();
 
@@ -55,10 +55,10 @@ public class TeleOpTeste extends LinearOpMode {
             float powerBL2 = - gamepad1.left_stick_x;
 
             // Aqui o código está definindo a velocidade que cada motor utilizara em seus movimentos
-            frontLeft.setPower(powerFL*0.4 + powerFL1*0.8 + powerFL2*0.4 );
-            backLeft.setPower(powerBL*0.4 + powerBL1*0.8 + powerBL2*0.4);
-            frontRight.setPower(powerFR*0.45 + powerFR1*0.85 + powerFR2*0.4);
-            backRight.setPower(powerBR*0.45 + powerBR1*0.85 + powerBR2*0.4);
+            FL.setPower(powerFL*0.4 + powerFL1*0.8 + powerFL2*0.4 );
+            BL.setPower(powerBL*0.4 + powerBL1*0.8 + powerBL2*0.4);
+            FR.setPower(powerFR*0.45 + powerFR1*0.85 + powerFR2*0.4);
+            BR.setPower(powerBR*0.45 + powerBR1*0.85 + powerBR2*0.4);
 
         }
     }
