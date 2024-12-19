@@ -55,10 +55,10 @@ public class IMUteste extends LinearOpMode
     @Override public void runOpMode() throws InterruptedException {
 
         imu = hardwareMap.get(IMU.class, "imu");
-        DcMotor FL = hardwareMap.dcMotor.get("FL");
-        DcMotor BL = hardwareMap.dcMotor.get("BL");
-        DcMotor FR = hardwareMap.dcMotor.get("FR");
-        DcMotor BR = hardwareMap.dcMotor.get("BR");
+        FL = hardwareMap.dcMotor.get("FL");
+        BL = hardwareMap.dcMotor.get("BL");
+        FR = hardwareMap.dcMotor.get("FR");
+        BR = hardwareMap.dcMotor.get("BR");
 
         FL.setDirection(DcMotor.Direction.REVERSE);
         BL.setDirection(DcMotor.Direction.FORWARD);
@@ -98,11 +98,12 @@ public class IMUteste extends LinearOpMode
                 telemetry.addData("Roll (Y) velocity", "%.2f Deg/Sec", angularVelocity.yRotationRate);
                 telemetry.update();
 
-                turn(FL, FR, BL, BR, true, 90);
+                sleep(1000);
+                turn(true, 90);
                 }
             }
         }
-    public void turn (DcMotor a, DcMotor b, DcMotor c, DcMotor d, boolean direction, double targetAngle) {
+    public void turn (boolean direction, double targetAngle) {
         final double limite = 3;
         YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
         double currentAngle = orientation.getYaw(AngleUnit.DEGREES);
@@ -114,13 +115,15 @@ public class IMUteste extends LinearOpMode
             if (angle - currentAngle > 180) currentAngle += 360;
 
             while (Math.abs(angle-currentAngle) > limite) {
+                orientation = imu.getRobotYawPitchRollAngles();
                 currentAngle = orientation.getYaw(AngleUnit.DEGREES);
                 if (angle - currentAngle > 180) currentAngle += 360;
-                a.setPower(-0.3);
-                b.setPower(0.3);
-                c.setPower(-0.3);
-                d.setPower(0.3);
-                sleep(10000);
+                FL.setPower(0.3);
+                FR.setPower(0.3);
+                BL.setPower(0.3);
+                BR.setPower(0.3);
+                telemetry.addData("posição", currentAngle);
+                telemetry.update();
             }
         } else {
             angle = targetAngle + currentAngle;
@@ -128,18 +131,20 @@ public class IMUteste extends LinearOpMode
             if (currentAngle - angle > 180) currentAngle -= 360;
 
             while (Math.abs(angle-currentAngle) > limite) {
+                orientation = imu.getRobotYawPitchRollAngles();
                 currentAngle = orientation.getYaw(AngleUnit.DEGREES);
                 if (currentAngle - angle > 180) currentAngle -= 360;
-                a.setPower(0.3);
-                b.setPower(-0.3);
-                c.setPower(0.3);
-                d.setPower(-0.3);
-                sleep(10000);
+                FL.setPower(0.3);
+                FR.setPower(0.3);
+                BL.setPower(0.3);
+                BR.setPower(0.3);
+                telemetry.addData("posição", currentAngle);
+                telemetry.update();
             }
         }
-        a.setPower(0);
-        b.setPower(0);
-        c.setPower(0);
-        d.setPower(0);
+        FL.setPower(0);
+        FR.setPower(0);
+        BL.setPower(0);
+        BR.setPower(0);
     }
 }
