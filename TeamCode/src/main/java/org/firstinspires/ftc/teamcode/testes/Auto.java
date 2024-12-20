@@ -61,6 +61,8 @@ public class Auto extends LinearOpMode {
         FR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         BR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         EX.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        PC.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        BC.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         EX.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         PC.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -106,15 +108,15 @@ public class Auto extends LinearOpMode {
                 resetEncoder();
                 move(280);
                 resetEncoder();
-                turn(false, 15, 0.3);
+                turn(false, 20, 0.3);
                 resetEncoder();
                 subirEX();
                 resetEncoder();
-                move(150);
+                move(165);
                 resetEncoder();
-                sleep(100);
+                sleep(600);
                 largarAmostra();
-                move(-170);
+                move(-150);
                 resetEncoder();
                 descerEX();
                 turn(true, 0, 0.3);
@@ -123,10 +125,13 @@ public class Auto extends LinearOpMode {
                 resetEncoder();
                 move(-550);
                 resetEncoder();
-                rotation(true, 280);
+                rotation(true, 270);
                 resetEncoder();
                 subirEXpEncostar();
-                moveLento(250);
+                moveLento(175);
+                resetEncoder();
+                levantarPC();
+                resetEncoder();
                 stope();
             } else {
                 move(100);
@@ -144,17 +149,18 @@ public class Auto extends LinearOpMode {
                 resetEncoder();
                 rotation(true, 300);
                 resetEncoder();
-                move(-500);
+                move(-550);
                 resetEncoder();
-                rotation(false, 300);
+                rotation(false, 200);
                 resetEncoder();
-                move(-150);
+                move(-170);
+                resetEncoder();
+                levantarPC();
                 resetEncoder();
                 stope();
             }
         }
     }
-
     public void smoother(DcMotor motor, Double targetVelocity) {
         int targetPos = motor.getTargetPosition();
         int currPos = motor.getCurrentPosition();
@@ -180,10 +186,10 @@ public class Auto extends LinearOpMode {
         BL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         BR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         while (Math.abs(FL.getTargetPosition() - FL.getCurrentPosition()) > 10) {
-            FL.setPower(0.15);
-            FR.setPower(0.15);
-            BL.setPower(0.15);
-            BR.setPower(0.15);
+            smoother(FL, 0.15);
+            smoother(FR, 0.15);
+            smoother(BL, 0.15);
+            smoother(BR, 0.15);
         }
         sleep(delay);
     }
@@ -198,10 +204,10 @@ public class Auto extends LinearOpMode {
         BL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         BR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         while (Math.abs(FL.getTargetPosition() - FL.getCurrentPosition()) > 10) {
-            FL.setPower(0.1);
-            FR.setPower(0.1);
-            BL.setPower(0.1);
-            BR.setPower(0.1);
+            smoother(FL, 0.1);
+            smoother(FR, 0.1);
+            smoother(BL, 0.1);
+            smoother(BR, 0.1);
         }
         sleep(delay);
     }

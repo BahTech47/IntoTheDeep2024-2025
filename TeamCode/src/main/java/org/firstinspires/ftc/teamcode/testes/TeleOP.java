@@ -14,7 +14,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class TeleOP extends LinearOpMode {
 
     // Definição das variáveis
-    private final double kp = 0.001;
     private DcMotor FL;
     private DcMotor FR;
     private DcMotor BL;
@@ -38,6 +37,12 @@ public class TeleOP extends LinearOpMode {
     boolean right_bumper = true;
     boolean left_bumper = true;
     boolean amostra = false;
+    short time = 0;
+    boolean inicio = true;
+    boolean manual = false;
+    double kpM = 0.3;
+    double kpO = 0.1;
+    final double kp = 0.001;
 
     // Definição de classes dos motores
     @Override
@@ -60,11 +65,10 @@ public class TeleOP extends LinearOpMode {
         BR.setDirection(DcMotor.Direction.FORWARD);
         FR.setDirection(DcMotor.Direction.REVERSE);
         EX.setDirection(DcMotorSimple.Direction.REVERSE);
-        //BC.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        EX.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        PC.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        BC.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        EX.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        PC.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        BC.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         EX.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         PC.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -75,28 +79,27 @@ public class TeleOP extends LinearOpMode {
         //Aqui o código está definindo as ações de acordo com o controle de PS4
         while (opModeIsActive()) {
 
+         //   time += 1;
+
+            if (inicio) {
+                EX.setTargetPosition(EX.getTargetPosition());
+                BC.setTargetPosition(BC.getTargetPosition());
+                PC.setTargetPosition(PC.getTargetPosition());
+                inicio = false;
+            }
+
             SE.setPosition(1);
 
             telemetry.addData("Posição do braço", PC.getCurrentPosition());
             telemetry.addData("Posição da pinça", BC.getCurrentPosition());
             telemetry.addData("amostra", amostra);
+            telemetry.addData("runMode", PC.getMode());
+            telemetry.addData("runMode", DcMotor.RunMode.RUN_TO_POSITION);
+            telemetry.addData("targetPosition (PC)", PC.getTargetPosition());
+       //     telemetry.addData("time", time);
+            telemetry.addData("manual", manual);
             telemetry.update();
 
-            /*if (gamepad2.right_trigger > 0 || gamepad2.left_trigger > 0) {
-                EX.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            } else {
-                EX.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            }
-            if (gamepad2.left_stick_y != 0) {
-                PC.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            } else {
-                PC.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            }
-            if (gamepad2.right_stick_y != 0) {
-                BC.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            } else {
-                BC.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            }*/
 
 
             // Sensores dentro da caixa da extensora
@@ -125,37 +128,33 @@ public class TeleOP extends LinearOpMode {
             float powerBL2 = - gamepad1.left_stick_x;
 
             // Movimentação manual do braço
-            /*float powerPC = + gamepad2.left_stick_y;
+            float powerPC = + gamepad2.left_stick_y;
             float powerBC = + gamepad2.right_stick_y;
 
             // Movimentação manual da extensora
-            float powerEX = gamepad2.left_trigger - gamepad2.right_trigger;*/
+            float powerEX = gamepad2.left_trigger - gamepad2.right_trigger;
 
             // Aqui o código está definindo a velocidade que cada motor utilizara em seus movimentos
-            FL.setPower(powerFL*0.4 + powerFL1*0.8 + powerFL2*0.4 );
-            BL.setPower(powerBL*0.4 + powerBL1*0.8 + powerBL2*0.4);
-            FR.setPower(powerFR*0.45 + powerFR1*0.85 + powerFR2*0.4);
-            BR.setPower(powerBR*0.45 + powerBR1*0.85 + powerBR2*0.4);
-            //PC.setPower(powerPC*0.8);
-            //BC.setPower(powerBC*0.5);
-            //EX.setPower(powerEX*0.8);
+            smootherPower(FL, powerFL*0.4 + powerFL1*0.8 + powerFL2*0.4, kpM);
+            smootherPower(BL, powerBL*0.4 + powerBL1*0.8 + powerBL2*0.4, kpM);
+            smootherPower(FR, powerFR*0.45 + powerFR1*0.85 + powerFR2*0.4, kpM);
+            smootherPower(BR, powerBR*0.45 + powerBR1*0.85 + powerBR2*0.4, kpM);
+
             if (EX.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
-                smoother(EX, 0.8);
+                smootherPosition(EX, 0.8);
+            } else {
+                smootherPower(EX, powerEX*0.5, kpO);
             }
             if(PC.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
-                smoother(PC, 1.0);
+                smootherPosition(PC, 1.0);
+            } else {
+                smootherPower(PC, powerPC*0.5, kpO);
             }
             if (BC.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
-                smoother(BC, 0.5);
+                smootherPosition(BC, 0.5);
+            } else {
+                smootherPower(BC, powerBC*0.5, kpO);
             }
-
-           /* if (gamepad2.right_stick_y != 0) {
-                BC.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                float powerBC = +gamepad2.right_stick_y;
-                BC.setPower(powerBC * 0.5);
-            } else{
-                BC.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            }*/
 
             // Subir garra extensora
             if (!gamepad2.triangle) {
@@ -225,7 +224,7 @@ public class TeleOP extends LinearOpMode {
             }
             if(gamepad2.dpad_left && dpad_left)  {
                 SE.setPosition(0);
-                sleep(2000);
+                sleep(500);
                 SE.setPosition(1);
                 dpad_left = false;
             }
@@ -261,20 +260,45 @@ public class TeleOP extends LinearOpMode {
                 SL.setPosition(0);
                 left_bumper = false;
             }
+
+            if (gamepad2.right_stick_button) {
+                manual = true;
+            }
+            if (gamepad2.left_stick_button) {
+                manual = false;
+            }
+
+            if (manual) {
+                EX.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                PC.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                BC.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            } else {
+                EX.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                PC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                BC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            }
         }
     }
-    public void smoother(DcMotor motor, Double targetVelocity) {
+
+    public void smootherPower(DcMotor motor, double targetPower, double kp) {
+        double currPower = motor.getPower();
+        motor.setPower(targetPower*kp + currPower*(1-kp));
+
+    }
+
+    public void smootherPosition(DcMotor motor, Double targetVelocity) {
         int targetPos = motor.getTargetPosition();
         int currPos = motor.getCurrentPosition();
-
         double power = Math.abs(targetPos - currPos) * kp;
         if (power <= 0.003)
             motor.setPower(0);
-        else if (power <= targetVelocity)
+        else if (power < targetVelocity) {
             motor.setPower(power);
-        else
+        }
+        else {
             motor.setPower(targetVelocity);
-
+        }
     }
 
 }
