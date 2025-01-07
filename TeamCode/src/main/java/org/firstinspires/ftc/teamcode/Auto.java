@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.testes;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -17,6 +17,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 @Autonomous(name="Auto", group="BahTech")
 public class Auto extends LinearOpMode {
 
+    // Definição das variáveis
     private final double kp = 0.001;
     private DcMotor FL;
     private DcMotor FR;
@@ -36,7 +37,7 @@ public class Auto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-
+        // Hardware map de todos os componentes
         imu = hardwareMap.get(IMU.class, "imu");
         FL  = hardwareMap.get(DcMotor.class, "FL");
         FR = hardwareMap.get(DcMotor.class, "FR");
@@ -51,11 +52,13 @@ public class Auto extends LinearOpMode {
         RS1 = hardwareMap.get(ColorSensor.class, "RS1");
         RS2 = hardwareMap.get(ColorSensor.class, "RS2");
 
+        // Definição da direção de cada motor
         FL.setDirection(DcMotor.Direction.REVERSE);
         BL.setDirection(DcMotor.Direction.FORWARD);
         BR.setDirection(DcMotor.Direction.FORWARD);
         FR.setDirection(DcMotor.Direction.FORWARD);
 
+        // Reset de todos os encoders
         FL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         BL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         FR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -64,6 +67,7 @@ public class Auto extends LinearOpMode {
         PC.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         BC.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        // Código para os motores das garras travarem quando estiverem em potência zero
         EX.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         PC.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BC.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -72,19 +76,19 @@ public class Auto extends LinearOpMode {
 
         while (opModeIsActive()) {
 
+            // Posição inicial do servo
             SE.setPosition(1);
 
+            // Definições iniciais do IMU
             RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.UP;
             RevHubOrientationOnRobot.UsbFacingDirection usbDirection = RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
-
             RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
-
             imu.initialize(new IMU.Parameters(orientationOnRobot));
-
             YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
             AngularVelocity angularVelocity = imu.getRobotAngularVelocity(AngleUnit.DEGREES);
             double currentAngle = orientation.getYaw(AngleUnit.DEGREES);
 
+            // Feedbacks por telemetria
             telemetry.addData("posição", currentAngle);
             telemetry.addData("amostra", amostra);
             telemetry.addData("encoderFR", FR.getCurrentPosition());
@@ -101,6 +105,7 @@ public class Auto extends LinearOpMode {
                 amostra = false;
             }
 
+            // Instruções para as duas opções de estratégias (basquete e clip, respectivamente)
             if (amostra) {
                 baixarPC();
                 lateralMove(true, 80);
@@ -121,7 +126,7 @@ public class Auto extends LinearOpMode {
                 descerEX();
                 turn(true, 0, 0.3);
                 resetEncoder();
-                rotation(true, 300);
+                rotation(true, 250);
                 resetEncoder();
                 move(-550);
                 resetEncoder();
@@ -129,8 +134,6 @@ public class Auto extends LinearOpMode {
                 resetEncoder();
                 subirEXpEncostar();
                 moveLento(175);
-                resetEncoder();
-                levantarPC();
                 resetEncoder();
                 stope();
             } else {
@@ -161,6 +164,7 @@ public class Auto extends LinearOpMode {
             }
         }
     }
+    // Função smoother para os movimentos com encoder e IMU
     public void smoother(DcMotor motor, Double targetVelocity) {
         int targetPos = motor.getTargetPosition();
         int currPos = motor.getCurrentPosition();
@@ -175,7 +179,7 @@ public class Auto extends LinearOpMode {
         }
     }
 
-    // Movimentação para frente
+    // Movimentação para frente e para trás
     public void move(int position) {
         FL.setTargetPosition(-position);
         FR.setTargetPosition(-position);
@@ -194,6 +198,7 @@ public class Auto extends LinearOpMode {
         sleep(delay);
     }
 
+    // Movimentação para frente e para trás mais lentamente
     public void moveLento(int position) {
         FL.setTargetPosition(-position);
         FR.setTargetPosition(-position);
@@ -227,7 +232,7 @@ public class Auto extends LinearOpMode {
         sleep(delay);
     }
 
-    // Curva em 90°
+    // Curva em 90° (usando encoders)
     public void curve(boolean direction) {
         if (direction) {
             FL.setTargetPosition(-240);
@@ -254,7 +259,7 @@ public class Auto extends LinearOpMode {
         sleep(delay);
     }
 
-    // Curva em qualquer angulação
+    // Curva em qualquer angulação (usando encoders)
     public void rotation(boolean direction, int position) {
         if (direction) {
             FL.setTargetPosition(-position);
@@ -320,7 +325,7 @@ public class Auto extends LinearOpMode {
         sleep(delay);
     }
 
-    // Subir a extensora na altura do clip
+    // Subir a extensora na altura para encostar na barra
     public void subirEXpEncostar() {
         EX.setTargetPosition(-1300);
         EX.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -331,6 +336,7 @@ public class Auto extends LinearOpMode {
         sleep(delay);
     }
 
+    // Subir a extensora na altura para largar o clip
     public void subirEXclip() {
         EX.setTargetPosition(-2250);
         EX.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -360,7 +366,7 @@ public class Auto extends LinearOpMode {
         sleep(delay);
     }
 
-    // Rotação por IMU
+    // Rotação em qualquer angulação (por IMU)
     public void turn (boolean direction, double targetAngle, double power) {
         final double limite = 3;
         YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
@@ -430,6 +436,7 @@ public class Auto extends LinearOpMode {
         sleep(delay);
     }
 
+    // Parar o robô
     public void stope() {
         FL.setPower(0);
         FR.setPower(0);

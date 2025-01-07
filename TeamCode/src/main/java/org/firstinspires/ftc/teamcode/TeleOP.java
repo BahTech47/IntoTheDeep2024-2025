@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.testes;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -37,16 +37,15 @@ public class TeleOP extends LinearOpMode {
     boolean right_bumper = true;
     boolean left_bumper = true;
     boolean amostra = false;
-    short time = 0;
     boolean inicio = true;
     boolean manual = false;
     double kpM = 0.3;
     double kpO = 0.1;
     final double kp = 0.001;
 
-    // Definição de classes dos motores
     @Override
     public void runOpMode() {
+        // Hardware map de todos os componentes
         FL  = hardwareMap.get(DcMotor.class, "FL");
         FR = hardwareMap.get(DcMotor.class, "FR");
         BL  = hardwareMap.get(DcMotor.class, "BL");
@@ -60,6 +59,7 @@ public class TeleOP extends LinearOpMode {
         RS1 = hardwareMap.get(ColorSensor.class, "RS1");
         RS2 = hardwareMap.get(ColorSensor.class, "RS2");
 
+        // Definição da direção dos motores
         FL.setDirection(DcMotor.Direction.FORWARD);
         BL.setDirection(DcMotor.Direction.FORWARD);
         BR.setDirection(DcMotor.Direction.FORWARD);
@@ -76,11 +76,9 @@ public class TeleOP extends LinearOpMode {
 
         waitForStart();
 
-        //Aqui o código está definindo as ações de acordo com o controle de PS4
         while (opModeIsActive()) {
 
-         //   time += 1;
-
+            // Impedir que os motores se mexam assim que o código for iniciado
             if (inicio) {
                 EX.setTargetPosition(EX.getTargetPosition());
                 BC.setTargetPosition(BC.getTargetPosition());
@@ -88,19 +86,18 @@ public class TeleOP extends LinearOpMode {
                 inicio = false;
             }
 
+            // Posição inicial do servo
             SE.setPosition(1);
 
+            // Feedbacks por telemetria
             telemetry.addData("Posição do braço", PC.getCurrentPosition());
             telemetry.addData("Posição da pinça", BC.getCurrentPosition());
             telemetry.addData("amostra", amostra);
             telemetry.addData("runMode", PC.getMode());
             telemetry.addData("runMode", DcMotor.RunMode.RUN_TO_POSITION);
             telemetry.addData("targetPosition (PC)", PC.getTargetPosition());
-       //     telemetry.addData("time", time);
             telemetry.addData("manual", manual);
             telemetry.update();
-
-
 
             // Sensores dentro da caixa da extensora
             if (((DistanceSensor) RS1).getDistance(DistanceUnit.CM) < 10 || ((DistanceSensor) RS2).getDistance(DistanceUnit.CM) < 10) {
@@ -134,24 +131,23 @@ public class TeleOP extends LinearOpMode {
             // Movimentação manual da extensora
             float powerEX = gamepad2.left_trigger - gamepad2.right_trigger;
 
-            // Aqui o código está definindo a velocidade que cada motor utilizara em seus movimentos
+            // Definição das velocidades dos motores
             smootherPower(FL, powerFL*0.4 + powerFL1*0.8 + powerFL2*0.4, kpM);
             smootherPower(BL, powerBL*0.4 + powerBL1*0.8 + powerBL2*0.4, kpM);
             smootherPower(FR, powerFR*0.45 + powerFR1*0.85 + powerFR2*0.4, kpM);
             smootherPower(BR, powerBR*0.45 + powerBR1*0.85 + powerBR2*0.4, kpM);
-
             if (EX.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
-                smootherPosition(EX, 0.8);
+                smootherPosition(EX, 0.8, 0.001);
             } else {
                 smootherPower(EX, powerEX*0.5, kpO);
             }
             if(PC.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
-                smootherPosition(PC, 1.0);
+                smootherPosition(PC, 1.0, 0.001);
             } else {
                 smootherPower(PC, powerPC*0.5, kpO);
             }
             if (BC.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
-                smootherPosition(BC, 0.5);
+                smootherPosition(BC, 0.5, 0.01);
             } else {
                 smootherPower(BC, powerBC*0.5, kpO);
             }
@@ -161,6 +157,14 @@ public class TeleOP extends LinearOpMode {
                 triangle = true;
             }
             if (gamepad2.triangle && triangle && amostra) {
+                EX.setTargetPosition(4500);
+                EX.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                triangle = false;
+            }
+            if (!gamepad1.triangle) {
+                triangle = true;
+            }
+            if (gamepad1.triangle && triangle) {
                 EX.setTargetPosition(4500);
                 EX.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 triangle = false;
@@ -198,13 +202,13 @@ public class TeleOP extends LinearOpMode {
                 cross = false;
             }
 
-            // Sobe a garra de leve
+            // Subir apenas a pinça
             if (!gamepad2.dpad_up) {
                 dpad_up = true;
             }
             if (gamepad2.dpad_up && dpad_up) {
-                EX.setTargetPosition(500);
-                EX.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                BC.setTargetPosition(0);
+                BC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 dpad_up = false;
             }
 
@@ -236,7 +240,7 @@ public class TeleOP extends LinearOpMode {
             if (gamepad2.dpad_right && dpad_right) {
                 PC.setTargetPosition(1100);
                 PC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                BC.setTargetPosition(80);
+                BC.setTargetPosition(65);
                 BC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 dpad_right = false;
             }
@@ -261,6 +265,7 @@ public class TeleOP extends LinearOpMode {
                 left_bumper = false;
             }
 
+            // Troca do movimento manual e automático das garras
             if (gamepad2.right_stick_button) {
                 manual = true;
             }
@@ -268,6 +273,7 @@ public class TeleOP extends LinearOpMode {
                 manual = false;
             }
 
+            // Definição dos modos de funcionamento das garras (automático ou manual)
             if (manual) {
                 EX.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 PC.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -281,13 +287,15 @@ public class TeleOP extends LinearOpMode {
         }
     }
 
+    // Função smoother para movimentos manuais
     public void smootherPower(DcMotor motor, double targetPower, double kp) {
         double currPower = motor.getPower();
         motor.setPower(targetPower*kp + currPower*(1-kp));
 
     }
 
-    public void smootherPosition(DcMotor motor, Double targetVelocity) {
+    // Função smoother para movimentos automáticos (por encoder)
+    public void smootherPosition(DcMotor motor, Double targetVelocity, double kp) {
         int targetPos = motor.getTargetPosition();
         int currPos = motor.getCurrentPosition();
         double power = Math.abs(targetPos - currPos) * kp;
