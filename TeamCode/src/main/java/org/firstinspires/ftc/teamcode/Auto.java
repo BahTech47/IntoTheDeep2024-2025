@@ -108,16 +108,14 @@ public class Auto extends LinearOpMode {
             // Instruções para as duas opções de estratégias (basquete e clip, respectivamente)
             if (amostra) {
                 baixarPC();
-                lateralMove(true, 80);
+                lateralMove(true, 50);
                 turn(true, 0, 0.3);
                 resetEncoder();
                 move(280);
                 resetEncoder();
-                turn(false, 20, 0.3);
-                resetEncoder();
                 subirEX();
                 resetEncoder();
-                move(165);
+                move(160);
                 resetEncoder();
                 sleep(600);
                 largarAmostra();
@@ -130,12 +128,12 @@ public class Auto extends LinearOpMode {
                 resetEncoder();
                 move(-550);
                 resetEncoder();
-                rotation(true, 270);
+                rotation(true, 300);
                 resetEncoder();
                 subirEXpEncostar();
                 moveLento(175);
                 resetEncoder();
-                stope();
+                stope2();
             } else {
                 move(100);
                 resetEncoder();
@@ -442,6 +440,14 @@ public class Auto extends LinearOpMode {
         FR.setPower(0);
         BL.setPower(0);
         BR.setPower(0);
+        sleep(999999);
+    }
+
+    public void stope2() {
+        FL.setPower(0.1);
+        FR.setPower(0.1);
+        BL.setPower(0.1);
+        BR.setPower(0.1);
         sleep(999999);
     }
 }
