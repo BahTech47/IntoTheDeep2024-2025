@@ -5,9 +5,11 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
@@ -29,11 +31,12 @@ public class Auto extends LinearOpMode {
     private Servo SE;
     private Servo SL;
     private Servo SR;
+    private Servo SC;
     ColorSensor RS1;
     ColorSensor RS2;
     IMU imu;
     boolean amostra = false;
-    public int delay = 20;
+    public int delay = 10;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -49,14 +52,9 @@ public class Auto extends LinearOpMode {
         SE = hardwareMap.get(Servo.class, "SE");
         SL = hardwareMap.get(Servo.class, "SL");
         SR = hardwareMap.get(Servo.class, "SR");
+        SC = hardwareMap.get(Servo.class, "SC");
         RS1 = hardwareMap.get(ColorSensor.class, "RS1");
         RS2 = hardwareMap.get(ColorSensor.class, "RS2");
-
-        // Definição da direção de cada motor
-        FL.setDirection(DcMotor.Direction.REVERSE);
-        BL.setDirection(DcMotor.Direction.FORWARD);
-        BR.setDirection(DcMotor.Direction.FORWARD);
-        FR.setDirection(DcMotor.Direction.FORWARD);
 
         // Reset de todos os encoders
         FL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -76,7 +74,7 @@ public class Auto extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            // Posição inicial do servo
+            // Posição inicial dos servos
             SE.setPosition(1);
 
             // Definições iniciais do IMU
@@ -91,83 +89,126 @@ public class Auto extends LinearOpMode {
             // Feedbacks por telemetria
             telemetry.addData("posição", currentAngle);
             telemetry.addData("amostra", amostra);
-            telemetry.addData("encoderFR", FR.getCurrentPosition());
-            telemetry.addData("encoderFL", FL.getCurrentPosition());
-            telemetry.addData("encoderBR", BR.getCurrentPosition());
-            telemetry.addData("encoderBL", BL.getCurrentPosition());
-            telemetry.addData("encoderEX", EX.getCurrentPosition());
+            telemetry.addData("BC", BC.getCurrentPosition());
             telemetry.update();
 
             // Sensores dentro da caixa da extensora
-            if (((DistanceSensor) RS1).getDistance(DistanceUnit.CM) < 10 || ((DistanceSensor) RS2).getDistance(DistanceUnit.CM) < 10) {
-                amostra = true;
-            } else{
-                amostra = false;
-            }
+            amostra = ((DistanceSensor) RS1).getDistance(DistanceUnit.CM) < 10 || ((DistanceSensor) RS2).getDistance(DistanceUnit.CM) < 10;
 
             // Instruções para as duas opções de estratégias (basquete e clip, respectivamente)
             if (amostra) {
+                // Largar primeira amostra na cesta alta:
                 baixarPC();
-                lateralMove(true, 50);
+                abrirPinça();
+                baixarBC();
+                lateralMove(true, 50, 0.8);
                 turn(true, 0, 0.3);
                 resetEncoder();
-                move(280);
+                move(250, 0.5);
                 resetEncoder();
                 subirEX();
                 resetEncoder();
-                move(160);
+                move(120, 0.5);
                 resetEncoder();
-                sleep(600);
+                sleep(500);
                 largarAmostra();
-                move(-150);
+                move(-80, 0.5);
                 resetEncoder();
                 descerEX();
-                turn(true, 0, 0.3);
+                // Pegar segunda amostra:
+                rotation(true, 305, 0.8);
                 resetEncoder();
-                rotation(true, 250);
+                move(-185, 0.5);
                 resetEncoder();
-                move(-550);
-                resetEncoder();
-                rotation(true, 300);
-                resetEncoder();
-                subirEXpEncostar();
-                moveLento(175);
-                resetEncoder();
-                stope2();
+                sleep(500);
+                fecharPinça();
+                sleep(500);
+                girarPinça();
+                levantarPC();
+                abrirPinça();
+                sleep (500);
+                // Largar segunda amostra na cesta alta ou estacionar:
+                amostra = ((DistanceSensor) RS1).getDistance(DistanceUnit.CM) < 10 || ((DistanceSensor) RS2).getDistance(DistanceUnit.CM) < 10;
+                telemetry.addData("amostra", amostra);
+                telemetry.update();
+                if(!amostra) {
+                    baixarBC();
+                    lateralMove(false, 200, 0.8);
+                    resetEncoder();
+                    move(-450, 0.5);
+                    resetEncoder();
+                    rotation(true, 305, 0.8);
+                    resetEncoder();
+                    move(-30, 0.5);
+                    resetEncoder();
+                    subirEXpEncostar();
+                    move(100, 0.5);
+                    sleep(999999);
+                } else {
+                    baixarPC();
+                    move(100, 0.5);
+                    resetEncoder();
+                    rotation(false, 220, 0.8);
+                    resetEncoder();
+                    subirEX();
+                    move(110, 0.5);
+                    resetEncoder();
+                    largarAmostra();
+                    move(-100, 0.5);
+                    descerEX();
+                    stope();
+                }
             } else {
-                move(100);
-                resetEncoder();
-                baixarPC();
-                lateralMove(false, 200);
-                resetEncoder();
-                turn(true, 0, 0.3);
+                // Largar primeiro clip:
+                SubirCesta();
+                move(150, 0.5);
                 resetEncoder();
                 subirEXclip();
-                move(220);
+                move(210, 0.2);
                 resetEncoder();
                 descerEX();
-                move(-100);
+                // Pegar segundo clip do jogador humano:
+                move(-130, 0.5);
                 resetEncoder();
-                rotation(true, 300);
+                rotation(true, 320, 0.8);
                 resetEncoder();
-                move(-550);
+                move(-450, 0.5);
                 resetEncoder();
-                rotation(false, 200);
+                rotation(true, 280, 0.3);
                 resetEncoder();
-                move(-170);
+                moveRápido(100);
                 resetEncoder();
-                levantarPC();
+                subirEXclip();
+                // Largar segundo clip:
+                move(-150, 0.5);
+                resetEncoder();
+                rotation(true, 285, 0.3);
+                resetEncoder();
+                move(-500, 0.5);
+                resetEncoder();
+                rotation(true, 280, 0.3);
+                resetEncoder();
+                turn(true, 0, 0.5);
+                resetEncoder();
+                descerEX();
+                // Estacionar:
+                move(-150, 0.5);
+                resetEncoder();
+                rotation(true, 250, 0.8);
+                resetEncoder();
+                moveRápido(-200);
                 resetEncoder();
                 stope();
             }
         }
     }
+
     // Função smoother para os movimentos com encoder e IMU
     public void smoother(DcMotor motor, Double targetVelocity) {
         int targetPos = motor.getTargetPosition();
         int currPos = motor.getCurrentPosition();
         double power = Math.abs(targetPos - currPos) * kp;
-        if (power <= 0.003)
+        if (power <= 0.000)
             motor.setPower(0);
         else if (power < targetVelocity) {
             motor.setPower(power);
@@ -178,7 +219,7 @@ public class Auto extends LinearOpMode {
     }
 
     // Movimentação para frente e para trás
-    public void move(int position) {
+    public void move(int position, double power) {
         FL.setTargetPosition(-position);
         FR.setTargetPosition(-position);
         BL.setTargetPosition(position);
@@ -188,16 +229,16 @@ public class Auto extends LinearOpMode {
         BL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         BR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         while (Math.abs(FL.getTargetPosition() - FL.getCurrentPosition()) > 10) {
-            smoother(FL, 0.15);
-            smoother(FR, 0.15);
-            smoother(BL, 0.15);
-            smoother(BR, 0.15);
+            smoother(FL, power);
+            smoother(FR, power);
+            smoother(BL, power);
+            smoother(BR, power);
         }
         sleep(delay);
     }
 
-    // Movimentação para frente e para trás mais lentamente
-    public void moveLento(int position) {
+    // Movimentação p/ frente e trás de forma bruta
+    public void moveRápido(int position) {
         FL.setTargetPosition(-position);
         FR.setTargetPosition(-position);
         BL.setTargetPosition(position);
@@ -207,10 +248,10 @@ public class Auto extends LinearOpMode {
         BL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         BR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         while (Math.abs(FL.getTargetPosition() - FL.getCurrentPosition()) > 10) {
-            smoother(FL, 0.1);
-            smoother(FR, 0.1);
-            smoother(BL, 0.1);
-            smoother(BR, 0.1);
+            FL.setPower(0.5);
+            FR.setPower(0.5);
+            BL.setPower(0.5);
+            BR.setPower(0.5);
         }
         sleep(delay);
     }
@@ -230,35 +271,8 @@ public class Auto extends LinearOpMode {
         sleep(delay);
     }
 
-    // Curva em 90° (usando encoders)
-    public void curve(boolean direction) {
-        if (direction) {
-            FL.setTargetPosition(-240);
-            FR.setTargetPosition(240);
-            BL.setTargetPosition(-240);
-            BR.setTargetPosition(240);
-        } else {
-            FL.setTargetPosition(240);
-            FR.setTargetPosition(-240);
-            BL.setTargetPosition(240);
-            BR.setTargetPosition(-240);
-        }
-        FL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        FR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        BL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        BR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        while (Math.abs(FL.getTargetPosition() - FL.getCurrentPosition()) > 10) {
-            smoother(FL, 0.15);
-            smoother(FR, 0.15);
-            smoother(BL, 0.15);
-            smoother(BR, 0.15);
-        }
-        telemetry.update();
-        sleep(delay);
-    }
-
     // Curva em qualquer angulação (usando encoders)
-    public void rotation(boolean direction, int position) {
+    public void rotation(boolean direction, int position, double power) {
         if (direction) {
             FL.setTargetPosition(-position);
             FR.setTargetPosition(position);
@@ -275,17 +289,17 @@ public class Auto extends LinearOpMode {
         BL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         BR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         while (Math.abs(FL.getTargetPosition() - FL.getCurrentPosition()) > 10) {
-            smoother(FL, 0.3);
-            smoother(FR, 0.3);
-            smoother(BL, 0.3);
-            smoother(BR, 0.3);
+            smoother(FL, power);
+            smoother(FR, power);
+            smoother(BL, power);
+            smoother(BR, power);
         }
         telemetry.update();
         sleep(delay);
     }
 
     // Movimentação lateral
-    public void lateralMove(boolean direction, int position) {
+    public void lateralMove(boolean direction, int position, double power) {
         if (direction) {
             FL.setTargetPosition(-position);
             FR.setTargetPosition(position);
@@ -302,10 +316,10 @@ public class Auto extends LinearOpMode {
         BL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         BR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         while (Math.abs(FL.getTargetPosition() - FL.getCurrentPosition()) > 10) {
-            smoother(FL, 0.85);
-            smoother(FR, 0.8);
-            smoother(BL, 0.8);
-            smoother(BR, 0.8);
+            FL.setPower(power);
+            FR.setPower(power+0.05);
+            BL.setPower(power);
+            BR.setPower(power);
         }
         telemetry.update();
         sleep(delay);
@@ -316,9 +330,7 @@ public class Auto extends LinearOpMode {
         EX.setTargetPosition(-4500);
         EX.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         while (Math.abs(EX.getTargetPosition() - EX.getCurrentPosition()) > 50) {
-            smoother(EX, 0.8);
-            telemetry.addData("encoderEX", EX.getCurrentPosition());
-            telemetry.update();
+            smoother(EX, 1.0);
         }
         sleep(delay);
     }
@@ -328,7 +340,7 @@ public class Auto extends LinearOpMode {
         EX.setTargetPosition(-1300);
         EX.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         while (Math.abs(EX.getTargetPosition() - EX.getCurrentPosition()) > 10) {
-            smoother(EX, 0.8);
+            smoother(EX, 1.0);
         }
         telemetry.update();
         sleep(delay);
@@ -339,7 +351,7 @@ public class Auto extends LinearOpMode {
         EX.setTargetPosition(-2250);
         EX.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         while (Math.abs(EX.getTargetPosition() - EX.getCurrentPosition()) > 10) {
-            smoother(EX, 0.8);
+            smoother(EX, 1.0);
         }
         telemetry.update();
         sleep(delay);
@@ -356,10 +368,15 @@ public class Auto extends LinearOpMode {
         sleep(delay);
     }
 
+    // subir cesta
+    public void SubirCesta () {
+        SE.setPosition(0.5);
+    }
+
     // Largar amostra na cesta
     public  void largarAmostra () {
         SE.setPosition(0);
-        sleep(2000);
+        sleep(1000);
         SE.setPosition(1);
         sleep(delay);
     }
@@ -414,7 +431,7 @@ public class Auto extends LinearOpMode {
 
     // Baixar braço
     public void baixarPC () {
-        PC.setTargetPosition(1000);
+        PC.setTargetPosition(660);
         PC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         if(PC.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
             smoother(PC, 1.0);
@@ -427,11 +444,45 @@ public class Auto extends LinearOpMode {
     public void levantarPC () {
         PC.setTargetPosition(0);
         PC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        BC.setTargetPosition(0);
+        BC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         while (Math.abs(PC.getTargetPosition() - PC.getCurrentPosition()) > 10) {
-            smoother(PC, 0.8);
+            PC.setPower(1.0);
+        }
+        while (Math.abs(BC.getTargetPosition() - BC.getCurrentPosition()) > 10) {
+            smoother(BC, 0.3);
         }
         telemetry.update();
         sleep(delay);
+    }
+
+    public void baixarBC () {
+        BC.setTargetPosition(170);
+        BC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        smoother(BC, 0.3);
+        telemetry.update();
+        sleep(delay);
+    }
+
+    // Fechar pinça
+    public void fecharPinça () {
+        SR.setPosition(0);
+        SL.setPosition(1);
+        telemetry.update();
+        sleep(delay);
+    }
+
+    // Abrir pinça
+    public void abrirPinça () {
+        SR.setPosition(1);
+        SL.setPosition(0);
+        telemetry.update();
+        sleep(delay);
+    }
+
+    // Girar a pinça
+    public void girarPinça () {
+        SC.setPosition(1);
     }
 
     // Parar o robô
@@ -444,10 +495,10 @@ public class Auto extends LinearOpMode {
     }
 
     public void stope2() {
-        FL.setPower(0.1);
-        FR.setPower(0.1);
-        BL.setPower(0.1);
-        BR.setPower(0.1);
-        sleep(999999);
+        FL.setPower(0.5);
+        FR.setPower(0.5);
+        BL.setPower(0.4);
+        BR.setPower(0.4);
+        sleep(9999999);
     }
 }

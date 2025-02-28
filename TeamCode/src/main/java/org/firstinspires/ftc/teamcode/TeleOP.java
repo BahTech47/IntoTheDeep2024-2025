@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name="TeleOP", group="BahTech")
 
@@ -24,6 +25,7 @@ public class TeleOP extends LinearOpMode {
     private Servo SE;
     private Servo SL;
     private Servo SR;
+    private Servo SC;
     ColorSensor RS1;
     ColorSensor RS2;
     boolean triangle = true;
@@ -41,10 +43,13 @@ public class TeleOP extends LinearOpMode {
     boolean manual = false;
     double kpM = 0.3;
     double kpO = 0.1;
+    boolean vibrar = false;
     final double kp = 0.001;
+    private ElapsedTime timer = new ElapsedTime();
 
     @Override
     public void runOpMode() {
+
         // Hardware map de todos os componentes
         FL  = hardwareMap.get(DcMotor.class, "FL");
         FR = hardwareMap.get(DcMotor.class, "FR");
@@ -56,11 +61,12 @@ public class TeleOP extends LinearOpMode {
         SE = hardwareMap.get(Servo.class, "SE");
         SL = hardwareMap.get(Servo.class, "SL");
         SR = hardwareMap.get(Servo.class, "SR");
+        SC = hardwareMap.get(Servo.class, "SC");
         RS1 = hardwareMap.get(ColorSensor.class, "RS1");
         RS2 = hardwareMap.get(ColorSensor.class, "RS2");
 
         // Definição da direção dos motores
-        FL.setDirection(DcMotor.Direction.FORWARD);
+        FL.setDirection(DcMotor.Direction.REVERSE);
         BL.setDirection(DcMotor.Direction.FORWARD);
         BR.setDirection(DcMotor.Direction.FORWARD);
         FR.setDirection(DcMotor.Direction.REVERSE);
@@ -76,6 +82,8 @@ public class TeleOP extends LinearOpMode {
 
         waitForStart();
 
+        timer.reset();
+
         while (opModeIsActive()) {
 
             // Impedir que os motores se mexam assim que o código for iniciado
@@ -86,7 +94,7 @@ public class TeleOP extends LinearOpMode {
                 inicio = false;
             }
 
-            // Posição inicial do servo
+            // Posição inicial dos servos
             SE.setPosition(1);
 
             // Feedbacks por telemetria
@@ -126,7 +134,7 @@ public class TeleOP extends LinearOpMode {
 
             // Movimentação manual do braço
             float powerPC = + gamepad2.left_stick_y;
-            float powerBC = + gamepad2.right_stick_y;
+            float powerBC = - gamepad2.right_stick_y;
 
             // Movimentação manual da extensora
             float powerEX = gamepad2.left_trigger - gamepad2.right_trigger;
@@ -147,7 +155,7 @@ public class TeleOP extends LinearOpMode {
                 smootherPower(PC, powerPC*0.5, kpO);
             }
             if (BC.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
-                smootherPosition(BC, 0.5, 0.01);
+                smootherPosition(BC, 0.3, 0.001);
             } else {
                 smootherPower(BC, powerBC*0.5, kpO);
             }
@@ -207,8 +215,11 @@ public class TeleOP extends LinearOpMode {
                 dpad_up = true;
             }
             if (gamepad2.dpad_up && dpad_up) {
-                BC.setTargetPosition(0);
-                BC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                if (SC.getPosition() == 1) {
+                    SC.setPosition(0);
+                } else {
+                    SC.setPosition(1);
+                }
                 dpad_up = false;
             }
 
@@ -228,7 +239,7 @@ public class TeleOP extends LinearOpMode {
             }
             if(gamepad2.dpad_left && dpad_left)  {
                 SE.setPosition(0);
-                sleep(500);
+                sleep(700);
                 SE.setPosition(1);
                 dpad_left = false;
             }
@@ -238,9 +249,9 @@ public class TeleOP extends LinearOpMode {
                 dpad_right = true;
             }
             if (gamepad2.dpad_right && dpad_right) {
-                PC.setTargetPosition(1100);
+                PC.setTargetPosition(670);
                 PC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                BC.setTargetPosition(65);
+                BC.setTargetPosition(135);
                 BC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 dpad_right = false;
             }
@@ -262,6 +273,7 @@ public class TeleOP extends LinearOpMode {
             if (gamepad2.left_bumper && left_bumper) {
                 SR.setPosition(1);
                 SL.setPosition(0);
+
                 left_bumper = false;
             }
 
@@ -276,13 +288,32 @@ public class TeleOP extends LinearOpMode {
             // Definição dos modos de funcionamento das garras (automático ou manual)
             if (manual) {
                 EX.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                PC.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                BC.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            } else {
-                EX.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 PC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 BC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            } else {
+                EX.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                PC.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                BC.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            }
 
+            // Vibração do controle
+            if (amostra && !vibrar) {
+                gamepad2.rumble(1000);
+                vibrar = true;
+            }
+            if (!amostra) {
+                vibrar = false;
+            }
+
+            if (timer.seconds() > 59 && timer.seconds() < 61) {
+                gamepad1.rumbleBlips(10);
+                gamepad2.rumbleBlips(10);
+            }
+
+            if (timer.seconds() > 105) {
+                gamepad1.rumbleBlips(10);
+                gamepad2.rumbleBlips(10);
+                timer.reset();
             }
         }
     }
@@ -312,3 +343,4 @@ public class TeleOP extends LinearOpMode {
 }
 
 // todo: write your code here
+
