@@ -140,22 +140,22 @@ public class TeleOP extends LinearOpMode {
             float powerEX = gamepad2.left_trigger - gamepad2.right_trigger;
 
             // Definição das velocidades dos motores
-            smootherPower(FL, powerFL*0.4 + powerFL1*0.8 + powerFL2*0.4, kpM);
-            smootherPower(BL, powerBL*0.4 + powerBL1*0.8 + powerBL2*0.4, kpM);
-            smootherPower(FR, powerFR*0.45 + powerFR1*0.85 + powerFR2*0.4, kpM);
-            smootherPower(BR, powerBR*0.45 + powerBR1*0.85 + powerBR2*0.4, kpM);
+            smootherPower(FL, powerFL*0.4 + powerFL1*0.8 + powerFL2*0.5, kpM);
+            smootherPower(BL, powerBL*0.4 + powerBL1*0.8 + powerBL2*0.5, kpM);
+            smootherPower(FR, powerFR*0.45 + powerFR1*0.85 + powerFR2*0.5, kpM);
+            smootherPower(BR, powerBR*0.45 + powerBR1*0.85 + powerBR2*0.5, kpM);
             if (EX.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
-                smootherPosition(EX, 0.8, 0.001);
+                smootherPosition(EX, 0.8, kp);
             } else {
                 smootherPower(EX, powerEX*0.5, kpO);
             }
             if(PC.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
-                smootherPosition(PC, 1.0, 0.001);
+                smootherPosition(PC, 1.0, kp);
             } else {
-                smootherPower(PC, powerPC*0.5, kpO);
+                smootherPower(PC, powerPC*0.7, kpO);
             }
             if (BC.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
-                smootherPosition(BC, 0.3, 0.001);
+                smootherPosition(BC, 0.3, kp);
             } else {
                 smootherPower(BC, powerBC*0.5, kpO);
             }
@@ -261,8 +261,8 @@ public class TeleOP extends LinearOpMode {
                 right_bumper = true;
             }
             if (gamepad2.right_bumper && right_bumper) {
-                SR.setPosition(0);
-                SL.setPosition(1);
+                SR.setPosition(1);
+                SL.setPosition(0);
                 right_bumper = false;
             }
 
@@ -271,8 +271,8 @@ public class TeleOP extends LinearOpMode {
                 left_bumper = true;
             }
             if (gamepad2.left_bumper && left_bumper) {
-                SR.setPosition(1);
-                SL.setPosition(0);
+                SR.setPosition(0);
+                SL.setPosition(1);
 
                 left_bumper = false;
             }

@@ -120,6 +120,7 @@ public class Auto extends LinearOpMode {
                 resetEncoder();
                 move(-185, 0.5);
                 resetEncoder();
+                baixarPC2();
                 sleep(500);
                 fecharPinça();
                 sleep(500);
@@ -143,6 +144,10 @@ public class Auto extends LinearOpMode {
                     resetEncoder();
                     subirEXpEncostar();
                     move(100, 0.5);
+                    FL.setPower(0.2);
+                    FR.setPower(0.2);
+                    BL.setPower(0.2);
+                    BR.setPower(0.2);
                     sleep(999999);
                 } else {
                     baixarPC();
@@ -176,7 +181,7 @@ public class Auto extends LinearOpMode {
                 resetEncoder();
                 rotation(true, 280, 0.3);
                 resetEncoder();
-                moveRápido(100);
+                moveRápido(200);
                 resetEncoder();
                 subirEXclip();
                 // Largar segundo clip:
@@ -196,7 +201,7 @@ public class Auto extends LinearOpMode {
                 resetEncoder();
                 rotation(true, 250, 0.8);
                 resetEncoder();
-                moveRápido(-200);
+                moveRápido(-300);
                 resetEncoder();
                 stope();
             }
@@ -431,7 +436,17 @@ public class Auto extends LinearOpMode {
 
     // Baixar braço
     public void baixarPC () {
-        PC.setTargetPosition(660);
+        PC.setTargetPosition(500);
+        PC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        if(PC.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
+            smoother(PC, 1.0);
+        }
+        telemetry.update();
+        sleep(delay);
+    }
+
+    public void baixarPC2 () {
+        PC.setTargetPosition(700);
         PC.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         if(PC.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
             smoother(PC, 1.0);
@@ -466,23 +481,23 @@ public class Auto extends LinearOpMode {
 
     // Fechar pinça
     public void fecharPinça () {
-        SR.setPosition(0);
-        SL.setPosition(1);
-        telemetry.update();
-        sleep(delay);
-    }
-
-    // Abrir pinça
-    public void abrirPinça () {
         SR.setPosition(1);
         SL.setPosition(0);
         telemetry.update();
         sleep(delay);
     }
 
+    // Abrir pinça
+    public void abrirPinça () {
+        SR.setPosition(0);
+        SL.setPosition(1);
+        telemetry.update();
+        sleep(delay);
+    }
+
     // Girar a pinça
     public void girarPinça () {
-        SC.setPosition(1);
+        SC.setPosition(0);
     }
 
     // Parar o robô
